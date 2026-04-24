@@ -1,0 +1,34 @@
+# Voice Classification Dataset Summary
+
+## Raw Dataset
+- **Source**: Common Voice-style (clips/ from data/clips.zip)
+  - Train: data/clips/cv-valid-train/ (~20,000+ .mp3 files listed, 3s each @ 16kHz)
+  - Splits: cv-valid-train.csv (195,778 lines), cv-valid-dev.csv, cv-valid-test.csv
+- **Metadata Columns**: filename, text, up_votes, down_votes, **age** (teens,twenties,thirties,fourties,fifties,sixties,seventies,eighties), **gender** (male,female), accent, duration
+- **Size**: Large speech corpus (train CSV ~195k entries, ~GBs audio)
+
+## Preprocessing (voice_profile_training.py)
+- **Tasks**:
+  | Task   | Classes                          | # Classes | Balancing |
+  |--------|----------------------------------|-----------|-----------|
+  | Gender | ['female', 'male']               | 2         | Max 5000/class |
+  | Age    | ['adult', 'middle_aged', 'senior'] (mapped: teens→adult, twenties→adult, thirties/fourties/fifties→middle_aged, sixties+→senior) | 3 | Max 5000/class |
+- **Features** (`extract_features_3ch`):
+  - Input: 3s mono 16kHz → trim/pad
+  - MFCC (n_mfcc=40, hop=512) + delta + delta-delta → **Shape: (40, ~94, 3)** (T = 16000*3/512 ≈94)
+  - Per-channel StandardScaler
+- **Splits**: 80/20 train/test, stratified
+- **Models**: CNN-LSTM, saved as gender_model.keras/age_model.keras + scalers
+
+## Other Script (train_model.py - older/alt)
+- MFCC mean-pooled to (40,)
+- Encoders for age/gender/accent
+- Simpler Dense model
+
+## Usage
+- Training: `voice_profile_training.py` → prints class dist, X.shape, acc ~high
+- Inference: server.py loads → Gender: ['female','male'], Age: ['adult','middle_aged','senior']
+
+**Total Classes Used**: 2 (gender) + 3 (age) = 5 unique labels.
+**Feature Shape**: (40, T=94, 3)
+

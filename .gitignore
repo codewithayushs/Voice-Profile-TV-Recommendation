@@ -1,32 +1,26 @@
-# Dataset (large, don't push)
-data/
-*.mp3
-*.wav
-*.pkl
-*.keras
-*.h5
-
 # Python
 __pycache__/
-*.pyc
-*.pyo
-*.pyd
+*.py[cod]
+*$py.class
+*.so
 .Python
 venv/
 env/
-.venv/
+ENV/
 
-# VSCode
+# IDEs
 .vscode/
-*.code-workspace
+.idea/
+
+# Data and uploads
+data/clips/
+data/clips.zip
+uploads/
+
+# Jupyter
+.ipynb_checkpoints/
 
 # OS
 .DS_Store
 Thumbs.db
-
-# Logs
-*.log
-
-# Environment
-.env
 

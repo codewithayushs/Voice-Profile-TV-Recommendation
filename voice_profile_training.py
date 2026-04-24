@@ -2,10 +2,10 @@
 voice_profile_training.py  —  Speaker Attribute Classification v7.0
 Trains TWO models:
     1. Gender model  -> predicts male / female
-    2. Age model     -> predicts teenager / young_adult / adult / mature_adult / senior
+    2. Age model     ->  adult / mature_adult / senior
 
 Both models are saved separately and used together in app.py and test_model.py
-to give a combined prediction like: "male, young_adult"
+to give a combined prediction like: "male,adult"
 """
 
 import os
@@ -50,8 +50,8 @@ HOP_LEN  = 512
 
 # Replace your AGE_MAP with this simpler version
 AGE_MAP = {
-    'teens':     'young',        # under ~20
-    'twenties':  'young',        # 20-29
+    'teens':     'adult',        # under ~20
+    'twenties':  'adult',        # 20-29
     'thirties':  'middle_aged',  # 30-39
     'fourties':  'middle_aged',  # 40-49
     'fifties':   'middle_aged',  # 50-59
