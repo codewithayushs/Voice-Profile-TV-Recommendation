@@ -1,9 +1,0 @@
-flask
-flask-cors
-gunicorn
-numpy
-librosa
-joblib
-tensorflow
-imageio-ffmpeg
-
