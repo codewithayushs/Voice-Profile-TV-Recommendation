@@ -1,9 +1,9 @@
 flask
 flask-cors
 gunicorn
-numpy<2
+numpy
 librosa
 joblib
-tensorflow==2.15.0
+tensorflow>=2.16,<2.22
 imageio-ffmpeg
 
