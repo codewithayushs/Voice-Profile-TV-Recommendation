@@ -1,343 +1,59 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-<meta charset="UTF-8"/>
-<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-<title>Voice Profile AI</title>
-<link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;700;800&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet"/>
-<style>
-*{box-sizing:border-box;margin:0;padding:0}
-:root{
-  --bg:#0d0221;--sidebar:#130a2e;--card:#1a0f3a;--card2:#1e1245;
-  --purple:#6c3fd4;--purple2:#8b5cf6;--orange:#f97316;
-  --grad:linear-gradient(135deg,#f97316,#ec4899,#8b5cf6);
-  --text:#f1f0ff;--muted:#8b83b0;--border:#2d1f5e;
-  --success:#10b981;--font-head:'Syne',sans-serif;--font:'DM Sans',sans-serif;
-}
-html,body{height:100%;background:var(--bg);color:var(--text);font-family:var(--font);overflow:hidden}
-
-/* ── LAYOUT ── */
-.app{display:flex;height:100vh}
-
-/* ── SIDEBAR ── */
-.sidebar{width:64px;background:var(--sidebar);display:flex;flex-direction:column;align-items:center;padding:1rem 0;gap:.25rem;border-right:1px solid var(--border);flex-shrink:0}
-.s-logo{width:36px;height:36px;border-radius:10px;background:var(--grad);display:flex;align-items:center;justify-content:center;margin-bottom:1.25rem;font-family:var(--font-head);font-weight:800;font-size:15px;color:#fff}
-.s-icon{width:40px;height:40px;border-radius:10px;display:flex;align-items:center;justify-content:center;cursor:pointer;color:var(--muted);transition:background .2s,color .2s;position:relative}
-.s-icon:hover,.s-icon.active{background:var(--card2);color:var(--text)}
-.s-icon svg{width:18px;height:18px;fill:none;stroke:currentColor;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round}
-.s-dot{width:6px;height:6px;border-radius:50%;background:#ef4444;position:absolute;top:7px;right:7px}
-.s-spacer{flex:1}
-
-/* ── MAIN ── */
-.main{flex:1;display:flex;flex-direction:column;overflow:hidden;position:relative}
-
-/* ── PAGES ── */
-.page{display:none;width:100%;height:100%}
-.page.active{display:flex}
-
-/* ══════════════════════════════
-   PAGE 1 — RECORD
-══════════════════════════════ */
-#page-record{flex-direction:column;align-items:center;justify-content:center;position:relative;overflow:hidden}
-.bg-glow{position:absolute;width:500px;height:500px;border-radius:50%;background:radial-gradient(circle,rgba(108,63,212,.3) 0%,transparent 70%);top:50%;left:50%;transform:translate(-50%,-50%);pointer-events:none}
-.bg-glow2{position:absolute;width:100%;height:180px;background:radial-gradient(ellipse,rgba(139,92,246,.12) 0%,transparent 70%);bottom:0;pointer-events:none}
-
-.rec-eyebrow{font-family:var(--font-head);font-size:11px;font-weight:700;letter-spacing:.28em;color:var(--muted);text-transform:uppercase;margin-bottom:2rem;z-index:1}
-
-/* waveform */
-.waveform{display:flex;align-items:center;justify-content:center;gap:3px;height:90px;width:360px;z-index:1;margin-bottom:1.75rem}
-.wb{width:3px;border-radius:3px;background:rgba(139,92,246,.35);transition:height .08s ease,background .3s}
-.waveform.live .wb{background:rgba(255,255,255,.75)}
-
-/* mic button */
-.mic-wrap{position:relative;z-index:2;display:flex;align-items:center;justify-content:center;margin-bottom:2rem}
-.mic-btn{width:86px;height:86px;border-radius:50%;background:var(--grad);display:flex;align-items:center;justify-content:center;cursor:pointer;border:none;outline:none;position:relative;transition:transform .15s}
-.mic-btn:hover{transform:scale(1.05)}
-.mic-btn.recording{animation:mbPulse .75s ease-in-out infinite alternate}
-@keyframes mbPulse{from{transform:scale(1)}to{transform:scale(1.09)}}
-.mic-btn svg{width:32px;height:32px;fill:none;stroke:#fff;stroke-width:2.2;stroke-linecap:round;stroke-linejoin:round;pointer-events:none}
-.ring{position:absolute;border-radius:50%;border:2px solid rgba(139,92,246,.55);opacity:0;pointer-events:none}
-.mic-btn.recording .ring{animation:ringOut 1.6s ease-out infinite}
-.mic-btn.recording .ring:nth-child(1){width:108px;height:108px}
-.mic-btn.recording .ring:nth-child(2){width:138px;height:138px;animation-delay:.45s}
-.mic-btn.recording .ring:nth-child(3){width:168px;height:168px;animation-delay:.9s}
-@keyframes ringOut{0%{opacity:.65;transform:scale(.88)}100%{opacity:0;transform:scale(1)}}
-
-.rec-hint{font-size:13px;color:var(--muted);z-index:1}
-.rec-state{font-size:15px;font-weight:500;color:var(--text);margin-top:.35rem;z-index:1;min-height:22px;text-align:center}
-
-.timer-wrap{width:280px;z-index:1;margin-top:1.5rem;opacity:0;transition:opacity .3s}
-.timer-track{height:3px;background:var(--border);border-radius:2px;overflow:hidden}
-.timer-fill{height:100%;width:0%;background:var(--grad);border-radius:2px;transition:width .1s linear}
-.timer-label{font-size:11px;color:var(--muted);text-align:right;margin-top:.4rem}
-
-/* status badge */
-.status-badge{position:absolute;top:1rem;right:1rem;font-size:11px;padding:.3rem .75rem;border-radius:20px;font-weight:500;letter-spacing:.05em}
-.status-badge.connected{background:rgba(16,185,129,.15);color:#10b981;border:1px solid rgba(16,185,129,.3)}
-.status-badge.disconnected{background:rgba(239,68,68,.12);color:#ef4444;border:1px solid rgba(239,68,68,.25)}
-
-/* ══════════════════════════════
-   PAGE 2 — ANALYZING
-══════════════════════════════ */
-#page-analyze{flex-direction:column;align-items:center;justify-content:center;gap:1.25rem}
-.an-title{font-family:var(--font-head);font-size:28px;font-weight:800;letter-spacing:-.02em}
-.an-sub{font-size:13px;color:var(--muted);letter-spacing:.06em}
-.progress-wrap{width:300px}
-.progress-track{height:4px;background:var(--border);border-radius:2px;overflow:hidden}
-.progress-fill{height:100%;width:0%;background:var(--grad);border-radius:2px;transition:width .25s ease}
-.steps{display:flex;flex-direction:column;gap:.55rem;margin-top:1.1rem}
-.step{font-size:12px;color:var(--muted);display:flex;align-items:center;gap:.6rem;opacity:.35;transition:opacity .4s,color .4s}
-.step.done{opacity:1;color:#a78bfa}
-.step-dot{width:6px;height:6px;border-radius:50%;background:#8b5cf6;flex-shrink:0}
-
-/* ══════════════════════════════
-   PAGE 3 — RESULTS
-══════════════════════════════ */
-#page-result{flex-direction:column}
-
-.topbar{display:flex;align-items:center;justify-content:space-between;padding:.75rem 1.25rem;border-bottom:1px solid var(--border);flex-shrink:0}
-.topbar-title{font-family:var(--font-head);font-size:15px;font-weight:700}
-.topbar-tabs{display:flex;gap:.25rem}
-.tab{font-size:12px;padding:.3rem .75rem;border-radius:6px;cursor:pointer;color:var(--muted);transition:all .2s;border:1px solid transparent}
-.tab.active,.tab:hover{background:var(--card2);color:var(--text);border-color:var(--border)}
-
-.result-body{display:flex;flex:1;overflow:hidden}
-
-/* left panel */
-.result-left{width:195px;flex-shrink:0;background:var(--sidebar);border-right:1px solid var(--border);display:flex;flex-direction:column;padding:1rem;gap:.75rem;overflow-y:auto}
-.profile-card{background:var(--card2);border-radius:14px;padding:1rem;text-align:center;border:1px solid var(--border)}
-.avatar{width:54px;height:54px;border-radius:50%;background:var(--grad);display:flex;align-items:center;justify-content:center;margin:0 auto .6rem;font-size:24px}
-.pc-name{font-family:var(--font-head);font-weight:700;font-size:14px;margin-bottom:.2rem}
-.pc-sub{font-size:11px;color:var(--muted)}
-
-.stat-block{background:var(--card);border-radius:10px;padding:.75rem;border:1px solid var(--border)}
-.stat-label{font-size:10px;color:var(--muted);letter-spacing:.1em;text-transform:uppercase;margin-bottom:.35rem}
-.stat-value{font-size:19px;font-weight:700;font-family:var(--font-head);background:var(--grad);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text}
-.conf-bar{height:3px;background:var(--border);border-radius:2px;margin-top:.45rem;overflow:hidden}
-.conf-fill{height:100%;background:var(--grad);border-radius:2px;width:0%;transition:width 1.3s ease}
-.conf-pct{font-size:10px;color:var(--muted);margin-top:.3rem}
-
-.try-btn{background:transparent;border:1px solid var(--border);color:var(--muted);font-family:var(--font);font-size:12px;padding:.55rem;border-radius:8px;cursor:pointer;width:100%;margin-top:auto;transition:all .2s}
-.try-btn:hover{border-color:var(--purple2);color:var(--text)}
-
-/* right content */
-.result-right{flex:1;overflow-y:auto;padding:1.25rem 1rem}
-.result-right::-webkit-scrollbar{width:4px}
-.result-right::-webkit-scrollbar-track{background:transparent}
-.result-right::-webkit-scrollbar-thumb{background:var(--border);border-radius:2px}
-
-.row-section{margin-bottom:1.75rem}
-.row-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:.8rem}
-.row-title{font-family:var(--font-head);font-size:15px;font-weight:700}
-.row-more{font-size:11px;color:var(--purple2);cursor:pointer;letter-spacing:.05em}
-
-.scroll-row{display:flex;gap:.75rem;overflow-x:auto;padding-bottom:.5rem;scrollbar-width:none}
-.scroll-row::-webkit-scrollbar{display:none}
-
-.content-card{flex-shrink:0;width:136px;border-radius:10px;cursor:pointer;transition:transform .2s;position:relative}
-.content-card:hover{transform:translateY(-3px)}
-.cc-thumb{width:136px;height:82px;border-radius:10px;display:flex;align-items:center;justify-content:center;font-size:34px;position:relative;overflow:hidden}
-.cc-badge{position:absolute;top:6px;left:6px;font-size:9px;font-weight:600;padding:2px 7px;border-radius:4px;letter-spacing:.06em;text-transform:uppercase}
-.badge-show{background:#7c3aed;color:#fff}
-.badge-movie{background:#ea580c;color:#fff}
-.badge-news{background:#059669;color:#fff}
-.badge-bhajan{background:#db2777;color:#fff}
-.cc-info{padding:.45rem .2rem 0}
-.cc-name{font-size:11px;font-weight:500;line-height:1.35;margin-bottom:.15rem}
-.cc-type{font-size:9px;color:var(--muted);text-transform:uppercase;letter-spacing:.08em}
-
-/* error toast */
-.toast{position:fixed;bottom:1.5rem;left:50%;transform:translateX(-50%);background:#1e1245;border:1px solid #ef4444;color:#fca5a5;font-size:12px;padding:.6rem 1.25rem;border-radius:8px;z-index:999;display:none}
-</style>
-</head>
-<body>
-
-<div class="app">
-
-  <!-- ── SIDEBAR ── -->
-  <div class="sidebar">
-    <div class="s-logo">V</div>
-    <div class="s-icon active" id="nav-record" title="Record">
-      <svg viewBox="0 0 24 24"><rect x="9" y="2" width="6" height="11" rx="3"/><path d="M5 10a7 7 0 0 0 14 0"/><line x1="12" y1="19" x2="12" y2="23"/><line x1="8" y1="23" x2="16" y2="23"/></svg>
-    </div>
-    <div class="s-icon" id="nav-result" title="Results">
-      <svg viewBox="0 0 24 24"><rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/></svg>
-    </div>
-    <div class="s-spacer"></div>
-    <div class="s-icon" title="Profile">
-      <svg viewBox="0 0 24 24"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
-    </div>
-  </div>
-
-  <!-- ── MAIN ── -->
-  <div class="main">
-
-    <!-- PAGE 1: RECORD -->
-    <div class="page active" id="page-record">
-      <div class="bg-glow"></div>
-      <div class="bg-glow2"></div>
-
-      <div class="status-badge disconnected" id="serverStatus">● Checking server...</div>
-
-      <div class="rec-eyebrow">Voice Recognition</div>
-
-      <!-- Waveform -->
-      <div class="waveform" id="waveform">
-        <!-- 28 bars -->
-        <div class="wb" style="height:8px"></div><div class="wb" style="height:16px"></div>
-        <div class="wb" style="height:28px"></div><div class="wb" style="height:42px"></div>
-        <div class="wb" style="height:56px"></div><div class="wb" style="height:68px"></div>
-        <div class="wb" style="height:76px"></div><div class="wb" style="height:82px"></div>
-        <div class="wb" style="height:74px"></div><div class="wb" style="height:62px"></div>
-        <div class="wb" style="height:70px"></div><div class="wb" style="height:80px"></div>
-        <div class="wb" style="height:72px"></div><div class="wb" style="height:60px"></div>
-        <div class="wb" style="height:66px"></div><div class="wb" style="height:78px"></div>
-        <div class="wb" style="height:70px"></div><div class="wb" style="height:58px"></div>
-        <div class="wb" style="height:64px"></div><div class="wb" style="height:74px"></div>
-        <div class="wb" style="height:66px"></div><div class="wb" style="height:50px"></div>
-        <div class="wb" style="height:38px"></div><div class="wb" style="height:28px"></div>
-        <div class="wb" style="height:20px"></div><div class="wb" style="height:12px"></div>
-        <div class="wb" style="height:8px"></div><div class="wb" style="height:5px"></div>
-      </div>
-
-      <!-- Mic -->
-      <div class="mic-wrap">
-        <button class="mic-btn" id="micBtn" aria-label="Record voice">
-          <div class="ring"></div><div class="ring"></div><div class="ring"></div>
-          <svg viewBox="0 0 24 24"><rect x="9" y="2" width="6" height="11" rx="3"/><path d="M5 10a7 7 0 0 0 14 0"/><line x1="12" y1="19" x2="12" y2="23"/><line x1="8" y1="23" x2="16" y2="23"/></svg>
-        </button>
-      </div>
-
-      <div class="rec-hint">Tap the mic to start recording</div>
-      <div class="rec-state" id="recState"></div>
-
-      <div class="timer-wrap" id="timerWrap">
-        <div class="timer-track"><div class="timer-fill" id="timerFill"></div></div>
-        <div class="timer-label" id="timerLabel">0 / 5s</div>
-      </div>
-    </div>
-
-    <!-- PAGE 2: ANALYZING -->
-    <div class="page" id="page-analyze">
-      <div class="an-title">Analyzing Voice...</div>
-      <div class="an-sub">Processing audio patterns</div>
-      <div class="progress-wrap">
-        <div class="progress-track"><div class="progress-fill" id="progressFill"></div></div>
-        <div class="steps">
-          <div class="step" id="s0"><div class="step-dot"></div>Extracting MFCC features</div>
-          <div class="step" id="s1"><div class="step-dot"></div>Running gender model</div>
-          <div class="step" id="s2"><div class="step-dot"></div>Running age model</div>
-          <div class="step" id="s3"><div class="step-dot"></div>Generating recommendations</div>
-        </div>
-      </div>
-    </div><!-- end page-analyze -->
-
-    <!-- PAGE 3: RESULTS -->
-    <div class="page" id="page-result">
-      <div class="topbar">
-        <div class="topbar-title">Your Voice Profile</div>
-        <div class="topbar-tabs">
-          <div class="tab active">For You</div>
-          <div class="tab">Trending</div>
-          <div class="tab">Popular</div>
-        </div>
-      </div>
-      <div class="result-body">
-        <!-- Left stats panel -->
-        <div class="result-left">
-          <div class="profile-card">
-            <div class="avatar" id="res-avatar">👤</div>
-            <div class="pc-name" id="res-gender-name">—</div>
-            <div class="pc-sub" id="res-age-name">—</div>
-          </div>
-          <div class="stat-block">
-            <div class="stat-label">Gender</div>
-            <div class="stat-value" id="res-gender-val">—</div>
-            <div class="conf-bar"><div class="conf-fill" id="res-g-bar"></div></div>
-            <div class="conf-pct" id="res-g-conf">—</div>
-          </div>
-          <div class="stat-block">
-            <div class="stat-label">Age Group</div>
-            <div class="stat-value" id="res-age-val">—</div>
-            <div class="conf-bar"><div class="conf-fill" id="res-a-bar"></div></div>
-            <div class="conf-pct" id="res-a-conf">—</div>
-          </div>
-          <button class="try-btn" id="tryAgain">Record Again</button>
-        </div>
-        <!-- Right recommendations panel -->
-        <div class="result-right" id="resultRight"></div>
-      </div>
-    </div><!-- end page-result -->
-
-  </div><!-- end main -->
-</div><!-- end app -->
-
-<div class="toast" id="toast"></div>
-
 <script>
-// ══════════════════════════════════════════════════════
-// CONFIG — change this if your server runs on a different port
-// ══════════════════════════════════════════════════════
-// ══════════════════════════════════════════════════════
-// BACKEND URL — replace with your Render URL after deploying backend
-// Example: const SERVER = 'https://voice-profile-api.onrender.com';
-// ══════════════════════════════════════════════════════
 const SERVER = 'https://voice-profile-tv-recommendation.onrender.com';
 
-// ══════════════════════════════════════════════════════
-// RECOMMENDATIONS DATA
-// ══════════════════════════════════════════════════════
 const RECS = {
-  young: [
+  adult: [
     { title: 'Comedy & Entertainment', items: [
       {e:'😂', name:'Taarak Mehta Ka Ooltah Chashmah', type:'Show', bg:'#2d1a5e', badge:'show'},
-      {e:'🎤', name:'Zakir Khan – Sakht Launda',        type:'Comedy', bg:'#3b1a4a', badge:'show'},
-      {e:'🎭', name:'The Kapil Sharma Show',            type:'Show',   bg:'#2a1545', badge:'show'},
-      {e:'😄', name:'Abhishek Upmanyu Live',            type:'Comedy', bg:'#1a2a4a', badge:'show'},
-      {e:'🤣', name:'Kenny Sebastian Special',          type:'Comedy', bg:'#2a1a3a', badge:'show'},
+      {e:'🎤', name:'Zakir Khan – Sakht Launda', type:'Comedy', bg:'#3b1a4a', badge:'show'},
+      {e:'🎭', name:'The Kapil Sharma Show', type:'Show', bg:'#2a1545', badge:'show'},
+      {e:'😄', name:'Abhishek Upmanyu Live', type:'Comedy', bg:'#1a2a4a', badge:'show'},
     ]},
     { title: 'Trending Now', items: [
-      {e:'🎬', name:'Fukrey Returns',   type:'Movie',  bg:'#3a1a1a', badge:'movie'},
-      {e:'🎭', name:'Gullak (Series)', type:'Show',   bg:'#2a1a4a', badge:'show'},
-      {e:'🎬', name:'Stree 2',         type:'Movie',  bg:'#3a2a1a', badge:'movie'},
-      {e:'🎵', name:'Lo-Fi Chill Mix', type:'Music',  bg:'#1a3a2a', badge:'show'},
+      {e:'🎬', name:'Fukrey Returns', type:'Movie', bg:'#3a1a1a', badge:'movie'},
+      {e:'🎭', name:'Gullak', type:'Show', bg:'#2a1a4a', badge:'show'},
+      {e:'🎬', name:'Stree 2', type:'Movie', bg:'#3a2a1a', badge:'movie'},
     ]},
   ],
+  young: [],
   middle_aged: [
     { title: 'Top Movies For You', items: [
-      {e:'🎬', name:'Dil Chahta Hai', type:'Movie',  bg:'#3a1a2a', badge:'movie'},
-      {e:'🏆', name:'Shershaah',      type:'Movie',  bg:'#3a2a1a', badge:'movie'},
-      {e:'🎬', name:'3 Idiots',       type:'Movie',  bg:'#1a3a3a', badge:'movie'},
-      {e:'🎬', name:'Piku',           type:'Movie',  bg:'#2a3a1a', badge:'movie'},
-      {e:'🎬', name:'Dangal',         type:'Movie',  bg:'#1a1a3a', badge:'movie'},
+      {e:'🎬', name:'Dil Chahta Hai', type:'Movie', bg:'#3a1a2a', badge:'movie'},
+      {e:'🏆', name:'Shershaah', type:'Movie', bg:'#3a2a1a', badge:'movie'},
+      {e:'🎬', name:'3 Idiots', type:'Movie', bg:'#1a3a3a', badge:'movie'},
+      {e:'🎬', name:'Piku', type:'Movie', bg:'#2a3a1a', badge:'movie'},
     ]},
     { title: 'Must-Watch Series', items: [
-      {e:'📺', name:'Scam 1992',   type:'Series', bg:'#2a1a4a', badge:'show'},
-      {e:'📺', name:'Mirzapur',    type:'Series', bg:'#2a1a1a', badge:'show'},
-      {e:'📺', name:'Panchayat',   type:'Series', bg:'#1a2a1a', badge:'show'},
-      {e:'🎭', name:'Queen',       type:'Movie',  bg:'#3a1a3a', badge:'movie'},
+      {e:'📺', name:'Scam 1992', type:'Series', bg:'#2a1a4a', badge:'show'},
+      {e:'📺', name:'Mirzapur', type:'Series', bg:'#2a1a1a', badge:'show'},
+      {e:'📺', name:'Panchayat', type:'Series', bg:'#1a2a1a', badge:'show'},
     ]},
   ],
   senior: [
     { title: 'News & Current Affairs', items: [
       {e:'📰', name:'Aaj Tak – Prime Time', type:'News', bg:'#0a2a1a', badge:'news'},
-      {e:'📺', name:'DD News Samachar',      type:'News', bg:'#0a1a2a', badge:'news'},
-      {e:'🗞️', name:'Zee News Morning',     type:'News', bg:'#1a0a2a', badge:'news'},
-      {e:'📡', name:'India TV Live',         type:'News', bg:'#0a2a2a', badge:'news'},
+      {e:'📺', name:'DD News Samachar', type:'News', bg:'#0a1a2a', badge:'news'},
+      {e:'🗞️', name:'Zee News Morning', type:'News', bg:'#1a0a2a', badge:'news'},
     ]},
     { title: 'Bhajans & Devotional', items: [
-      {e:'🕉️', name:'Hari Om Bhajans',            type:'Bhajan', bg:'#2a1a0a', badge:'bhajan'},
+      {e:'🕉️', name:'Hari Om Bhajans', type:'Bhajan', bg:'#2a1a0a', badge:'bhajan'},
       {e:'🙏', name:'Lata Mangeshkar Devotional', type:'Bhajan', bg:'#2a0a1a', badge:'bhajan'},
-      {e:'🎵', name:'Shiv Tandav Stotram',        type:'Bhajan', bg:'#1a2a0a', badge:'bhajan'},
-      {e:'🪔', name:'Ganesh Aarti Collection',    type:'Bhajan', bg:'#2a1a0a', badge:'bhajan'},
-      {e:'🌸', name:'Hanuman Chalisa',            type:'Bhajan', bg:'#1a0a2a', badge:'bhajan'},
+      {e:'🎵', name:'Shiv Tandav Stotram', type:'Bhajan', bg:'#1a2a0a', badge:'bhajan'},
     ]},
   ],
 };
+RECS.young = RECS.adult;
 
-// ══════════════════════════════════════════════════════
-// HELPERS
-// ══════════════════════════════════════════════════════
+function normalizeAgeGroup(age) {
+  if (!age) return 'adult';
+  age = String(age).toLowerCase().trim();
+  if (age === 'young' || age === 'young_adult') return 'adult';
+  if (age === 'adult') return 'adult';
+  if (age === 'middle-aged' || age === 'middle aged') return 'middle_aged';
+  if (age === 'senior') return 'senior';
+  return 'adult';
+}
+
 function showPage(id) {
   document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
   document.getElementById(id).classList.add('active');
@@ -345,35 +61,51 @@ function showPage(id) {
   document.getElementById('nav-result').classList.toggle('active', id === 'page-result');
 }
 
-function showToast(msg, dur = 3000) {
+function showToast(msg, dur = 4000) {
   const t = document.getElementById('toast');
-  t.textContent = msg; t.style.display = 'block';
+  t.textContent = msg;
+  t.style.display = 'block';
   setTimeout(() => t.style.display = 'none', dur);
 }
 
-// ══════════════════════════════════════════════════════
-// SERVER HEALTH CHECK
-// ══════════════════════════════════════════════════════
+async function fetchWithTimeout(url, options = {}, timeout = 60000) {
+  const controller = new AbortController();
+  const timer = setTimeout(() => controller.abort(), timeout);
+  try {
+    return await fetch(url, { ...options, signal: controller.signal });
+  } finally {
+    clearTimeout(timer);
+  }
+}
+
 async function checkServer() {
   const badge = document.getElementById('serverStatus');
+  badge.textContent = '● Waking Render server...';
+  badge.className = 'status-badge disconnected';
+
   try {
-    const res = await fetch(SERVER + '/health', { signal: AbortSignal.timeout(2000) });
+    let res = await fetchWithTimeout(SERVER + '/health', {}, 60000);
+
+    if (!res.ok) {
+      res = await fetchWithTimeout(SERVER + '/', {}, 60000);
+    }
+
     if (res.ok) {
       badge.textContent = '● Server Connected';
       badge.className = 'status-badge connected';
-    } else { throw new Error(); }
-  } catch {
+    } else {
+      throw new Error('Server not responding');
+    }
+  } catch (err) {
     badge.textContent = '● Server Offline';
     badge.className = 'status-badge disconnected';
   }
 }
-checkServer();
-setInterval(checkServer, 5000); // re-check every 5s
 
-// ══════════════════════════════════════════════════════
-// WAVEFORM ANIMATION
-// ══════════════════════════════════════════════════════
-const waveBars  = document.querySelectorAll('.wb');
+checkServer();
+setInterval(checkServer, 30000);
+
+const waveBars = document.querySelectorAll('.wb');
 const baseHeights = [8,16,28,42,56,68,76,82,74,62,70,80,72,60,66,78,70,58,64,74,66,50,38,28,20,12,8,5];
 let waveTimer = null;
 
@@ -383,29 +115,37 @@ function startWave() {
     waveBars.forEach(b => b.style.height = (4 + Math.random() * 78) + 'px');
   }, 90);
 }
+
 function stopWave() {
   clearInterval(waveTimer);
   document.getElementById('waveform').classList.remove('live');
   waveBars.forEach((b, i) => b.style.height = (baseHeights[i] || 8) + 'px');
 }
 
-// ══════════════════════════════════════════════════════
-// RECORDING
-// ══════════════════════════════════════════════════════
 let recording = false, recTimer = null, mediaRecorder = null, chunks = [];
-const micBtn    = document.getElementById('micBtn');
-const recState  = document.getElementById('recState');
+
+const micBtn = document.getElementById('micBtn');
+const recState = document.getElementById('recState');
 const timerWrap = document.getElementById('timerWrap');
 const timerFill = document.getElementById('timerFill');
-const timerLabel= document.getElementById('timerLabel');
+const timerLabel = document.getElementById('timerLabel');
 
 async function startRecording() {
   try {
     const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+
     mediaRecorder = new MediaRecorder(stream);
     chunks = [];
-    mediaRecorder.ondataavailable = e => chunks.push(e.data);
-    mediaRecorder.onstop = () => { stream.getTracks().forEach(t => t.stop()); processAudio(); };
+
+    mediaRecorder.ondataavailable = e => {
+      if (e.data.size > 0) chunks.push(e.data);
+    };
+
+    mediaRecorder.onstop = () => {
+      stream.getTracks().forEach(t => t.stop());
+      processAudio();
+    };
+
     mediaRecorder.start();
 
     recording = true;
@@ -417,10 +157,12 @@ async function startRecording() {
     let elapsed = 0;
     recTimer = setInterval(() => {
       elapsed += 100;
-      timerFill.style.width  = Math.min(elapsed / 5000 * 100, 100) + '%';
+      timerFill.style.width = Math.min(elapsed / 5000 * 100, 100) + '%';
       timerLabel.textContent = Math.min(Math.round(elapsed / 1000), 5) + ' / 5s';
+
       if (elapsed >= 5000) stopRecording();
     }, 100);
+
   } catch (e) {
     recState.textContent = 'Microphone access denied';
     showToast('Please allow microphone access in your browser');
@@ -430,73 +172,87 @@ async function startRecording() {
 
 function stopRecording() {
   if (!recording) return;
+
   recording = false;
   clearInterval(recTimer);
   stopWave();
+
   micBtn.classList.remove('recording');
   timerWrap.style.opacity = '0';
   recState.textContent = 'Processing your voice...';
-  if (mediaRecorder && mediaRecorder.state !== 'inactive') mediaRecorder.stop();
+
+  if (mediaRecorder && mediaRecorder.state !== 'inactive') {
+    mediaRecorder.stop();
+  }
 }
 
-micBtn.addEventListener('click', () => { if (!recording) startRecording(); else stopRecording(); });
+micBtn.addEventListener('click', () => {
+  if (!recording) startRecording();
+  else stopRecording();
+});
 
-// ══════════════════════════════════════════════════════
-// SEND AUDIO TO YOUR server.py → get real prediction
-// ══════════════════════════════════════════════════════
 async function processAudio() {
   const blob = new Blob(chunks, { type: 'audio/webm' });
 
   showPage('page-analyze');
   startAnalyzeAnimation();
 
-  let gender = 'Male', ageGroup = 'young', gConf = 72, aConf = 65;
+  let gender = 'male';
+  let ageGroup = 'adult';
+  let gConf = 72;
+  let aConf = 65;
   let usingRealModel = false;
 
   try {
     const formData = new FormData();
     formData.append('audio', blob, 'voice.webm');
 
-    const response = await fetch(SERVER + '/predict', {
+    const response = await fetchWithTimeout(SERVER + '/predict', {
       method: 'POST',
-      body: formData,
-    });
+      body: formData
+    }, 70000);
 
-    if (response.ok) {
-      const data = await response.json();
-      // ── These come directly from YOUR Keras models ──
-      gender   = data.gender;             // "male" or "female"
-      ageGroup = data.age_group;          // "young" / "middle_aged" / "senior"
-      gConf    = Math.round(data.gender_conf * 100);
-      aConf    = Math.round(data.age_conf    * 100);
-      usingRealModel = true;
-      console.log('Real model prediction:', data);
-    } else {
+    if (!response.ok) {
       throw new Error('Server returned ' + response.status);
     }
+
+    const data = await response.json();
+
+    gender = data.gender || 'male';
+    ageGroup = normalizeAgeGroup(data.age_group || data.age || 'adult');
+
+    gConf = Math.round((data.gender_conf || data.gender_confidence || 0.72) * 100);
+    aConf = Math.round((data.age_conf || data.age_confidence || 0.65) * 100);
+
+    if (gConf <= 1) gConf = Math.round(gConf * 100);
+    if (aConf <= 1) aConf = Math.round(aConf * 100);
+
+    usingRealModel = true;
+    console.log('Real model prediction:', data);
+
   } catch (err) {
-    console.warn('Could not reach server.py — using demo values:', err.message);
-    showToast('Server offline — showing demo result. Run: python server.py');
+    console.warn('Render backend not reachable:', err.message);
+    showToast('Backend is waking up or offline. Try again after 30–50 seconds.');
   }
 
-  // wait for animation to finish, then show result
-  setTimeout(() => showResult(gender, ageGroup, gConf, aConf, usingRealModel), 2800);
+  setTimeout(() => {
+    showResult(gender, ageGroup, gConf, aConf, usingRealModel);
+  }, 2800);
 }
 
-// ══════════════════════════════════════════════════════
-// ANALYSIS PROGRESS ANIMATION
-// ══════════════════════════════════════════════════════
 function startAnalyzeAnimation() {
-  const fill  = document.getElementById('progressFill');
+  const fill = document.getElementById('progressFill');
+
   document.querySelectorAll('.step').forEach(s => s.classList.remove('done'));
   fill.style.width = '0%';
 
   const milestones = [
-    { pct: 25,  step: 0, delay: 400  },
-    { pct: 50,  step: 1, delay: 900  },
-    { pct: 75,  step: 2, delay: 1500 },
+    { pct: 25, step: 0, delay: 400 },
+    { pct: 50, step: 1, delay: 900 },
+    { pct: 75, step: 2, delay: 1500 },
     { pct: 100, step: 3, delay: 2200 },
   ];
+
   milestones.forEach(m => {
     setTimeout(() => {
       fill.style.width = m.pct + '%';
@@ -505,47 +261,62 @@ function startAnalyzeAnimation() {
   });
 }
 
-// ══════════════════════════════════════════════════════
-// SHOW RESULTS
-// ══════════════════════════════════════════════════════
 function showResult(gender, ageGroup, gConf, aConf, real = false) {
-  const ageLabels = { young: 'Young Adult', middle_aged: 'Middle Aged', senior: 'Senior' };
-  const ageEmoji  = { young: '😄', middle_aged: '🧑', senior: '👴' };
+  ageGroup = normalizeAgeGroup(ageGroup);
 
-  // Capitalise gender label
-  const gLabel = gender.charAt(0).toUpperCase() + gender.slice(1);
+  const ageLabels = {
+    adult: 'Adult',
+    young: 'Adult',
+    middle_aged: 'Middle Aged',
+    senior: 'Senior'
+  };
 
-  document.getElementById('res-avatar').textContent   = ageEmoji[ageGroup] || '👤';
+  const ageEmoji = {
+    adult: '😄',
+    young: '😄',
+    middle_aged: '🧑',
+    senior: '👴'
+  };
+
+  const gLabel = String(gender).charAt(0).toUpperCase() + String(gender).slice(1);
+
+  document.getElementById('res-avatar').textContent = ageEmoji[ageGroup] || '👤';
   document.getElementById('res-gender-name').textContent = gLabel;
-  document.getElementById('res-age-name').textContent    = ageLabels[ageGroup] || ageGroup;
-  document.getElementById('res-gender-val').textContent  = gLabel;
-  document.getElementById('res-age-val').textContent     = ageLabels[ageGroup] || ageGroup;
-  document.getElementById('res-g-conf').textContent      = gConf + '% confidence' + (real ? '' : ' (demo)');
-  document.getElementById('res-a-conf').textContent      = aConf + '% confidence' + (real ? '' : ' (demo)');
+  document.getElementById('res-age-name').textContent = ageLabels[ageGroup] || ageGroup;
+  document.getElementById('res-gender-val').textContent = gLabel;
+  document.getElementById('res-age-val').textContent = ageLabels[ageGroup] || ageGroup;
 
-  // Animate confidence bars after a brief delay
+  document.getElementById('res-g-conf').textContent = gConf + '% confidence' + (real ? '' : ' (demo)');
+  document.getElementById('res-a-conf').textContent = aConf + '% confidence' + (real ? '' : ' (demo)');
+
   setTimeout(() => {
     document.getElementById('res-g-bar').style.width = gConf + '%';
     document.getElementById('res-a-bar').style.width = aConf + '%';
   }, 350);
 
-  // Build recommendation rows
   const right = document.getElementById('resultRight');
   right.innerHTML = '';
-  const rows = RECS[ageGroup] || RECS.young;
+
+  const rows = RECS[ageGroup] || RECS.adult;
+
   rows.forEach(row => {
     const section = document.createElement('div');
     section.className = 'row-section';
+
     section.innerHTML = `
       <div class="row-header">
         <div class="row-title">${row.title}</div>
         <div class="row-more">See all →</div>
-      </div>`;
+      </div>
+    `;
+
     const scrollRow = document.createElement('div');
     scrollRow.className = 'scroll-row';
+
     row.items.forEach(item => {
       const card = document.createElement('div');
       card.className = 'content-card';
+
       card.innerHTML = `
         <div class="cc-thumb" style="background:${item.bg}">
           <span>${item.e}</span>
@@ -554,9 +325,12 @@ function showResult(gender, ageGroup, gConf, aConf, real = false) {
         <div class="cc-info">
           <div class="cc-name">${item.name}</div>
           <div class="cc-type">${item.type}</div>
-        </div>`;
+        </div>
+      `;
+
       scrollRow.appendChild(card);
     });
+
     section.appendChild(scrollRow);
     right.appendChild(section);
   });
@@ -564,21 +338,20 @@ function showResult(gender, ageGroup, gConf, aConf, real = false) {
   showPage('page-result');
 }
 
-// ══════════════════════════════════════════════════════
-// NAVIGATION
-// ══════════════════════════════════════════════════════
 document.getElementById('nav-record').addEventListener('click', () => {
   recState.textContent = '';
   timerFill.style.width = '0%';
   timerLabel.textContent = '0 / 5s';
   showPage('page-record');
 });
+
 document.getElementById('nav-result').addEventListener('click', () => {
-  // Jump to demo result if no real result yet
   const hasResult = document.getElementById('res-gender-val').textContent !== '—';
+
   if (hasResult) showPage('page-result');
   else showToast('Record your voice first to see results');
 });
+
 document.getElementById('tryAgain').addEventListener('click', () => {
   recState.textContent = '';
   timerFill.style.width = '0%';
@@ -586,5 +359,3 @@ document.getElementById('tryAgain').addEventListener('click', () => {
   showPage('page-record');
 });
 </script>
-</body>
-</html>
